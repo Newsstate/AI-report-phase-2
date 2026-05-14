@@ -27,15 +27,15 @@ export function buildPrompt(
 
   // GSC block
   let gscBlock = manualGsc || 'Not fetched.'
-  if (gscData) {
-    gscBlock = `Period: ${config.dateFrom} to ${config.dateTo} vs ${config.prevFrom} to ${config.prevTo}
-Clicks: ${gscData.clicks.toLocaleString()} (prev: ${gscData.prev.clicks.toLocaleString()}) ${pct(gscData.clicks, gscData.prev.clicks)}
-Impressions: ${gscData.impressions.toLocaleString()} (prev: ${gscData.prev.impressions.toLocaleString()}) ${pct(gscData.impressions, gscData.prev.impressions)}
-CTR: ${(gscData.ctr*100).toFixed(2)}% (prev: ${(gscData.prev.ctr*100).toFixed(2)}%) ${pct(gscData.ctr, gscData.prev.ctr)}
-Avg Position: ${gscData.position.toFixed(2)} (prev: ${gscData.prev.position.toFixed(2)}) ${pct(gscData.position, gscData.prev.position, true)}`
+ if (gscData) {
+    const p = gscData.prev
+    gscBlock = `Period: ${config.dateFrom} to ${config.dateTo}${p ? ` vs ${config.prevFrom} to ${config.prevTo}` : ''}
+Clicks: ${gscData.clicks.toLocaleString()}${p ? ` (prev: ${p.clicks.toLocaleString()}) ${pct(gscData.clicks, p.clicks)}` : ''}
+Impressions: ${gscData.impressions.toLocaleString()}${p ? ` (prev: ${p.impressions.toLocaleString()}) ${pct(gscData.impressions, p.impressions)}` : ''}
+CTR: ${(gscData.ctr*100).toFixed(2)}%${p ? ` (prev: ${(p.ctr*100).toFixed(2)}%) ${pct(gscData.ctr, p.ctr)}` : ''}
+Avg Position: ${gscData.position.toFixed(2)}${p ? ` (prev: ${p.position.toFixed(2)}) ${pct(gscData.position, p.position, true)}` : ''}`
     if (manualGsc) gscBlock += `\nAdditional notes: ${manualGsc}`
   }
-
   // GA4 block
   let ga4Block = manualGa4 || 'Not fetched.'
   if (ga4Data?.current) {
