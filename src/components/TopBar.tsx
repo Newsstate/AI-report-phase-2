@@ -2,7 +2,7 @@
 import { useStore } from '@/store'
 
 export function TopBar() {
-  const { settings, googleToken, googleEmail, theme, toggleTheme } = useStore()
+const { googleToken, googleEmail, theme, toggleTheme } = useStore()
   return (
     <div className="h-14 flex items-center px-6 gap-4 sticky top-0 z-40 border-b"
       style={{ background: 'var(--bg-topbar)', borderColor: 'var(--border)', boxShadow: 'var(--shadow)' }}>
