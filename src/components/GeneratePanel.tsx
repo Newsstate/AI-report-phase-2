@@ -152,15 +152,18 @@ export function GeneratePanel() {
       </Card>
 
       {/* DATA PREVIEWS */}
-      {gscData && (
+   {gscData && (
         <Card>
           <CardTitle>Search Console — Live Data</CardTitle>
-          <DataTable headers={['Metric','Current','Previous','Change']} rows={[
-            ['Clicks',      gscData.clicks.toLocaleString(),      gscData.prev.clicks.toLocaleString(),      <ChangeBadge key="c" current={gscData.clicks} previous={gscData.prev.clicks} />],
-            ['Impressions', gscData.impressions.toLocaleString(), gscData.prev.impressions.toLocaleString(), <ChangeBadge key="i" current={gscData.impressions} previous={gscData.prev.impressions} />],
-            ['CTR',         `${(gscData.ctr*100).toFixed(2)}%`,  `${(gscData.prev.ctr*100).toFixed(2)}%`,  <ChangeBadge key="ctr" current={gscData.ctr} previous={gscData.prev.ctr} />],
-            ['Avg Position',gscData.position.toFixed(1),          gscData.prev.position.toFixed(1),          <ChangeBadge key="p" current={gscData.position} previous={gscData.prev.position} lowerBetter />],
-          ]} />
+          <DataTable
+            headers={gscData.prev ? ['Metric','Current','Previous','Change'] : ['Metric','Current']}
+            rows={[
+              ['Clicks',       gscData.clicks.toLocaleString(),         ...(gscData.prev ? [gscData.prev.clicks.toLocaleString(),      <ChangeBadge key="c"   current={gscData.clicks}      previous={gscData.prev.clicks} />]      : [])],
+              ['Impressions',  gscData.impressions.toLocaleString(),    ...(gscData.prev ? [gscData.prev.impressions.toLocaleString(), <ChangeBadge key="i"   current={gscData.impressions} previous={gscData.prev.impressions} />] : [])],
+              ['CTR',          `${(gscData.ctr*100).toFixed(2)}%`,      ...(gscData.prev ? [`${(gscData.prev.ctr*100).toFixed(2)}%`,  <ChangeBadge key="ctr" current={gscData.ctr}         previous={gscData.prev.ctr} />]         : [])],
+              ['Avg Position', gscData.position.toFixed(1),             ...(gscData.prev ? [gscData.prev.position.toFixed(1),         <ChangeBadge key="p"   current={gscData.position}    previous={gscData.prev.position} lowerBetter />] : [])],
+            ]}
+          />
         </Card>
       )}
       {ga4Data?.current && (
