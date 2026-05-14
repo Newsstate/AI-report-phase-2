@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID!
-const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI 
-  || (process.env.NEXT_PUBLIC_APP_URL 
-      ? `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback` 
-      : null)
+const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI
+  || (process.env.NEXT_PUBLIC_APP_URL
+    ? `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback`
+    : null)
 
-eexport async function GET() {
+export async function GET() {
   if (!CLIENT_ID) {
     return NextResponse.json({ error: 'Google OAuth not configured: missing GOOGLE_CLIENT_ID' }, { status: 500 })
   }
