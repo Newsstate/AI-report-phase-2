@@ -210,8 +210,8 @@ export function GeneratePanel() {
           <Field label="GA4 Property ID"><Input value={config.ga4PropertyId} onChange={e => store.setConfig({ ga4PropertyId: e.target.value })} placeholder="e.g. 362126245" /></Field>
           <Field label="Report From"><Input type="date" value={config.dateFrom} onChange={e => store.setConfig({ dateFrom: e.target.value })} /></Field>
           <Field label="Report To"><Input type="date" value={config.dateTo} onChange={e => store.setConfig({ dateTo: e.target.value })} /></Field>
-          <Field label="Compare From"><Input type="date" value={config.prevFrom} onChange={e => store.setConfig({ prevFrom: e.target.value })} /></Field>
-          <Field label="Compare To"><Input type="date" value={config.prevTo} onChange={e => store.setConfig({ prevTo: e.target.value })} /></Field>
+          <Field label="Compare From (optional)"><Input type="date" value={config.prevFrom} onChange={e => store.setConfig({ prevFrom: e.target.value })} /></Field>
+          <Field label="Compare To (optional)"><Input type="date" value={config.prevTo} onChange={e => store.setConfig({ prevTo: e.target.value })} /></Field>
         </div>
       </Card>
 
