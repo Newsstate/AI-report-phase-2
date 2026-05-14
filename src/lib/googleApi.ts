@@ -125,12 +125,21 @@ export async function listGA4Properties(token: string): Promise<GA4Property[]> {
       headers: { Authorization: `Bearer ${token}` },
     })
     if (!r2.ok) throw new Error(`GA4 property list error: ${r.statusText}`)
+    // BUG FIX: was reading r.json() here — must read r2 instead
+    const d2 = await r2.json()
+    const props: GA4Property[] = []
+    for (const account of d2.accountSummaries || []) {
+      for (const prop of account.propertySummaries || []) {
+        const id = prop.property?.replace('properties/', '') || ''
+        props.push({ propertyId: id, displayName: prop.displayName || id, websiteUrl: '' })
+      }
+    }
+    return props
   }
   const d = await r.json()
   const props: GA4Property[] = []
   for (const account of d.accountSummaries || []) {
     for (const prop of account.propertySummaries || []) {
-      // prop.property = "properties/362126245"
       const id = prop.property?.replace('properties/', '') || ''
       props.push({
         propertyId: id,
