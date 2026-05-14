@@ -66,12 +66,13 @@ export async function fetchGSCSummary(
   dateFrom: string, dateTo: string, prevFrom: string, prevTo: string,
   metrics: GscMetricKey[] = ['clicks','impressions','ctr','position']
 ): Promise<GSCSummary> {
+  const hasPrev = !!(prevFrom && prevTo)
   const [curr, prev] = await Promise.all([
     queryGSC(token, property, dateFrom, dateTo, []),
-    queryGSC(token, property, prevFrom, prevTo, []),
+    hasPrev ? queryGSC(token, property, prevFrom, prevTo, []) : Promise.resolve(null),
   ])
   const c = curr.rows?.[0] || {}
-  const p = prev.rows?.[0] || {}
+  const p = prev?.rows?.[0] || {}
   const pick = (row: Record<string, number>) =>
     Object.fromEntries(metrics.map(m => [m, row[m] ?? 0])) as Record<GscMetricKey, number>
   const base = pick(c); const basePrev = pick(p)
@@ -81,12 +82,12 @@ export async function fetchGSCSummary(
     ctr:         base.ctr         ?? 0,
     position:    base.position    ?? 0,
     selectedMetrics: metrics,
-    prev: {
+    prev: hasPrev ? {
       clicks:      basePrev.clicks      ?? 0,
       impressions: basePrev.impressions ?? 0,
       ctr:         basePrev.ctr         ?? 0,
       position:    basePrev.position    ?? 0,
-    },
+    } : undefined,
   }
 }
 
@@ -94,12 +95,13 @@ export async function fetchGSCKeywords(
   token: string, property: string,
   dateFrom: string, dateTo: string, prevFrom: string, prevTo: string,
 ): Promise<KeywordRow[]> {
+  const hasPrev = !!(prevFrom && prevTo)
   const [curr, prev] = await Promise.all([
     queryGSC(token, property, dateFrom, dateTo, ['query'], 30),
-    queryGSC(token, property, prevFrom, prevTo, ['query'], 30),
+    hasPrev ? queryGSC(token, property, prevFrom, prevTo, ['query'], 30) : Promise.resolve(null),
   ])
   const prevMap: Record<string, number> = {}
-  ;(prev.rows || []).forEach((r: { keys: string[]; position: number }) => {
+  ;((prev?.rows) || []).forEach((r: { keys: string[]; position: number }) => {
     prevMap[r.keys[0]] = r.position
   })
   return (curr.rows || []).map((r: { keys: string[]; position: number; clicks: number; impressions: number; ctr: number }) => ({
@@ -175,14 +177,14 @@ export async function fetchGA4Summary(
   selectedMetrics: Ga4MetricKey[] = ['sessions','totalUsers','newUsers','engagementRate','bounceRate','averageSessionDuration','screenPageViews']
 ): Promise<GA4Summary> {
   const url = `${GA4_BASE}/${propertyId}:runReport`
+const hasPrev = !!(prevFrom && prevTo)
   const r = await fetch(url, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      dateRanges: [
-        { startDate: dateFrom, endDate: dateTo },
-        { startDate: prevFrom, endDate: prevTo },
-      ],
+      dateRanges: hasPrev
+        ? [{ startDate: dateFrom, endDate: dateTo }, { startDate: prevFrom, endDate: prevTo }]
+        : [{ startDate: dateFrom, endDate: dateTo }],
       metrics: selectedMetrics.map(name => ({ name })),
     }),
   })
