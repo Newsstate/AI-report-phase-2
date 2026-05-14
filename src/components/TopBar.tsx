@@ -17,7 +17,7 @@ const { googleToken, googleEmail, theme, toggleTheme } = useStore()
       </span>
 
       <div className="flex items-center gap-3 ml-auto text-xs" style={{ color: 'var(--text-secondary)' }}>
-        <StatusDot on={!!settings.anthropicKey} label={settings.anthropicKey ? 'Claude' : 'No API Key'} color="var(--green)" />
+     <StatusDot on={true} label="Claude" color="var(--green)" />
         <StatusDot on={!!googleToken} label={googleToken ? (googleEmail || 'Google') : 'No Google'} color="var(--accent-blue)" />
       </div>
 
