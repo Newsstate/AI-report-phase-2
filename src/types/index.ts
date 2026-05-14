@@ -4,7 +4,7 @@ export type OutputFormat = 'docx' | 'pdf' | 'html' | 'markdown'
 export interface GSCSummary {
   clicks: number; impressions: number; ctr: number; position: number
   selectedMetrics?: string[]
-  prev: { clicks: number; impressions: number; ctr: number; position: number }
+  prev?: { clicks: number; impressions: number; ctr: number; position: number }
 }
 
 export interface GA4Summary {
