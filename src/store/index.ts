@@ -167,11 +167,13 @@ export const useStore = create<AppStore>()(
         if (typeof window !== 'undefined') return localStorage
         return { getItem: () => null, setItem: () => {}, removeItem: () => {} }
       }),
-      partialize: (s) => ({
+    partialize: (s) => ({
         theme: s.theme, config: s.config, history: s.history, schedules: s.schedules,
         settings: s.settings, masterPrompt: s.masterPrompt,
         manualGsc: s.manualGsc, manualGa4: s.manualGa4,
         manualKeywords: s.manualKeywords, manualNotes: s.manualNotes,
+        googleToken: s.googleToken,
+        googleEmail: s.googleEmail,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {
