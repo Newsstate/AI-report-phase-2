@@ -145,9 +145,9 @@ async function exportAsDocx(md: string, filename: string, clientName: string) {
     }
     if (inTable) flushTable()
 
-    if (line.startsWith('# ')) {
+ if (line.startsWith('# ')) {
       paragraphs.push(
-        new Paragraph({ spacing: { before: 0, after: 0 }, children: [] }),
+        new Paragraph({ pageBreakBefore: true, spacing: { before: 0, after: 0 }, children: [] }),
         hdrBar(line.slice(2)) as unknown as InstanceType<typeof Paragraph>,
         new Paragraph({ spacing: { before: 160, after: 60 }, children: [] })
       )
@@ -163,15 +163,32 @@ async function exportAsDocx(md: string, filename: string, clientName: string) {
         spacing: { before: 40, after: 40 },
         children: [new TextRun({ text: line.slice(2), font: 'Arial', size: 20, color: C.dark })],
       }))
-    } else if (line === '---') {
+} else if (line === '---' || line.match(/^[━=]{5,}$/)) {
       paragraphs.push(new Paragraph({ spacing: { before: 160, after: 160 },
         border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: C.border, space: 1 } },
         children: [] }))
-    } else if (line.trim()) {
-      const bold = line.startsWith('**') && line.endsWith('**')
-      const text = bold ? line.slice(2, -2) : line
-      paragraphs.push(new Paragraph({ spacing: { before: 40, after: 40 },
-        children: [new TextRun({ text, font: 'Arial', size: 20, color: C.dark, bold })] }))
+} else if (line.trim()) {
+      const trimmed = line.trim()
+      // Auto-detect ALL CAPS lines (min 6 chars, no lowercase) as section headers
+      const isAllCaps = trimmed.length >= 6 && trimmed === trimmed.toUpperCase() && /[A-Z]/.test(trimmed) && !trimmed.startsWith('|')
+      // Detect "Priority Action:" or "Key Insights:" style labels
+      const isLabel = /^(Priority Action|Key Insights|Key Metrics|Source|Note|Summary)\s*:/i.test(trimmed)
+      const bold = trimmed.startsWith('**') && trimmed.endsWith('**')
+      const text = bold ? trimmed.slice(2, -2) : trimmed
+
+      if (isAllCaps) {
+        paragraphs.push(
+          new Paragraph({ spacing: { before: 0, after: 0 }, children: [] }),
+          hdrBar(text) as unknown as InstanceType<typeof Paragraph>,
+          new Paragraph({ spacing: { before: 160, after: 60 }, children: [] })
+        )
+      } else if (isLabel) {
+        paragraphs.push(new Paragraph({ spacing: { before: 180, after: 60 },
+          children: [new TextRun({ text, bold: true, size: 21, color: C.blue, font: 'Arial' })] }))
+      } else {
+        paragraphs.push(new Paragraph({ spacing: { before: 40, after: 40 },
+          children: [new TextRun({ text, font: 'Arial', size: 20, color: C.dark, bold })] }))
+      }
     } else {
       paragraphs.push(new Paragraph({ spacing: { before: 60, after: 0 }, children: [] }))
     }
