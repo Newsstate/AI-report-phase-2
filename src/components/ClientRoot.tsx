@@ -48,7 +48,7 @@ function OAuthHandler() {
           store.addLog('Connected as: ' + (email || 'Google User'), 'ok')
 
           if (expires_at) {
-            sessionStorage.setItem('google_token_expires_at', String(expires_at))
+            localStorage.setItem('google_token_expires_at', String(expires_at))
           }
 
           // Clean URL
@@ -87,13 +87,25 @@ function OAuthHandler() {
 
     // Check persisted token validity
     const savedToken = store.googleToken
-    const expiresAt = sessionStorage.getItem('google_token_expires_at')
+   const expiresAt = localStorage.getItem('google_token_expires_at')
     if (savedToken && expiresAt && Date.now() > parseInt(expiresAt)) {
       store.setGoogleToken(null)
       store.setGoogleEmail('')
       store.addLog('Google session expired. Please reconnect.', 'warn')
-    } else if (savedToken && store.googleEmail) {
-      getUserInfo(savedToken).catch(() => {
+  } else if (savedToken && store.googleEmail) {
+      getUserInfo(savedToken).then(() => {
+        // Token still valid — re-fetch properties so dropdowns populate on refresh
+        listGSCProperties(savedToken).then(props => {
+          store.setGscProperties(props)
+          if (props[0] && !store.config.gscProperty) store.setConfig({ gscProperty: props[0] })
+        }).catch(() => {})
+
+        listGA4Properties(savedToken).then(ga4Props => {
+          store.setGa4Properties(ga4Props)
+          if (ga4Props[0] && !store.config.ga4PropertyId)
+            store.setConfig({ ga4PropertyId: ga4Props[0].propertyId })
+        }).catch(() => {})
+      }).catch(() => {
         store.setGoogleToken(null)
         store.setGoogleEmail('')
         store.addLog('Google session expired. Please reconnect.', 'warn')
