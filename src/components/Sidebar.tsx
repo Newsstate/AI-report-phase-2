@@ -12,7 +12,7 @@ const NAV: { id: NavTab; icon: string; label: string }[] = [
 ]
 
 export function Sidebar() {
-  const { activeTab, setActiveTab, settings, googleToken, uploadedFiles } = useStore()
+  const { activeTab, setActiveTab, googleToken, uploadedFiles } = useStore()
   return (
     <nav className="w-16 fixed top-0 left-0 bottom-0 z-50 flex flex-col items-center py-5 gap-1.5"
       style={{ background: 'var(--bg-sidebar)', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
@@ -27,7 +27,7 @@ export function Sidebar() {
           onClick={() => setActiveTab(item.id)} />
       ))}
       <div className="mt-auto flex flex-col items-center gap-1.5 mb-3">
-        <Dot on={!!settings.anthropicKey} color="#16A34A" title="Claude API" />
+       <Dot on={true} color="#16A34A" title="Claude API (configured)" />
         <Dot on={!!googleToken} color="#2E5FA3" title="Google" />
         <NavBtn id="settings" icon="⚙" label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
       </div>
