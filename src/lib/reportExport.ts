@@ -53,7 +53,7 @@ async function exportAsDocx(md: string, filename: string, clientName: string) {
   const bdrs = (col = C.border) => ({ top: bdr(col), bottom: bdr(col), left: bdr(col), right: bdr(col) })
   const noBdr = () => ({ top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } })
 
-  function cell(text: string, w: number, isHdr = false, bg?: string, textColor?: string, align = AlignmentType.CENTER) {
+  function cell(text: string, w: number, isHdr = false, bg?: string, textColor?: string, align: (typeof AlignmentType)[keyof typeof AlignmentType] = AlignmentType.CENTER) {
     const tc = textColor || (isHdr ? C.white : C.dark)
     return new TableCell({
       borders: bdrs(isHdr ? C.navy : C.border),
