@@ -256,6 +256,6 @@ export async function fetchGoogleSheet(token: string, sheetId: string): Promise<
 
 export function sheetToText(sheet: GoogleSheetData): string {
   const lines = [sheet.headers.join(' | ')]
-  sheet.rows.slice(0, 50).forEach(row => lines.push(row.join(' | ')))
+  sheet.rows.forEach(row => lines.push(row.join(' | ')))
   return `Google Sheet: ${sheet.sheetName}\n${lines.join('\n')}`
 }
