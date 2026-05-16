@@ -61,30 +61,27 @@ Conversions: ${Math.round(c.conversions)}${p ? ` (prev: ${Math.round(p.conversio
     if (manualKeywords) kwBlock += `\nAdditional: ${manualKeywords}`
   }
 
+  // Parse DD-Mon-YYYY (e.g. "06-May-2026") OR YYYY-MM-DD into a JS Date
+  const parseFlexDate = (raw: string): Date | null => {
+    if (!raw) return null
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw.trim())) return new Date(raw.trim())
+    const m = raw.trim().match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/)
+    if (m) return new Date(`${m[2]} ${m[1]}, ${m[3]}`)
+    const d = new Date(raw)
+    return isNaN(d.getTime()) ? null : d
+  }
+
   // ─── BACKLINK SHEET BLOCK — pre-filtered in JS, not by Claude ───────────────
   let shBlock = 'No Google Sheet connected.'
   if (sheetData) {
     // Normalise client URL → bare domain, e.g. "https://whitebunnie.com/" → "whitebunnie.com"
     const clientDomain = (config.clientUrl || '')
       .toLowerCase()
-      .replace(/^https?:\/\//, '')   // strip protocol
-      .replace(/\/.*$/, '')           // strip path
-      .trim()                         // e.g. "whitebunnie.com"
+      .replace(/^https?:\/\//, '')
+      .replace(/\/.*$/, '')
+      .trim()
 
     const clientNameLower = (config.clientName || '').toLowerCase().trim()
-
-    // Parse DD-Mon-YYYY (e.g. "06-May-2026") OR YYYY-MM-DD into a JS Date
-    function parseFlexDate(raw: string): Date | null {
-      if (!raw) return null
-      // YYYY-MM-DD
-      if (/^\d{4}-\d{2}-\d{2}$/.test(raw.trim())) return new Date(raw.trim())
-      // DD-Mon-YYYY  e.g. 06-May-2026
-      const m = raw.trim().match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/)
-      if (m) return new Date(`${m[2]} ${m[1]}, ${m[3]}`)
-      // Fallback — let JS try
-      const d = new Date(raw)
-      return isNaN(d.getTime()) ? null : d
-    }
 
     const fromDate = new Date(config.dateFrom)
     const toDate   = new Date(config.dateTo)
