@@ -1,5 +1,4 @@
 import type { ReportConfig, GSCSummary, GA4Summary, KeywordRow, GoogleSheetData, UploadedFile } from '@/types'
-import { sheetToText } from './googleApi'
 
 function pct(c: number, p: number, lb = false) {
   if (!p) return 'N/A'
@@ -62,8 +61,77 @@ Conversions: ${Math.round(c.conversions)}${p ? ` (prev: ${Math.round(p.conversio
     if (manualKeywords) kwBlock += `\nAdditional: ${manualKeywords}`
   }
 
-  // Sheets block
-  const shBlock = sheetData ? sheetToText(sheetData) : 'No Google Sheet connected.'
+  // ─── BACKLINK SHEET BLOCK — pre-filtered in JS, not by Claude ───────────────
+  let shBlock = 'No Google Sheet connected.'
+  if (sheetData) {
+    // Normalise client URL → bare domain, e.g. "https://whitebunnie.com/" → "whitebunnie.com"
+    const clientDomain = (config.clientUrl || '')
+      .toLowerCase()
+      .replace(/^https?:\/\//, '')   // strip protocol
+      .replace(/\/.*$/, '')           // strip path
+      .trim()                         // e.g. "whitebunnie.com"
+
+    const clientNameLower = (config.clientName || '').toLowerCase().trim()
+
+    // Parse DD-Mon-YYYY (e.g. "06-May-2026") OR YYYY-MM-DD into a JS Date
+    function parseFlexDate(raw: string): Date | null {
+      if (!raw) return null
+      // YYYY-MM-DD
+      if (/^\d{4}-\d{2}-\d{2}$/.test(raw.trim())) return new Date(raw.trim())
+      // DD-Mon-YYYY  e.g. 06-May-2026
+      const m = raw.trim().match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/)
+      if (m) return new Date(`${m[2]} ${m[1]}, ${m[3]}`)
+      // Fallback — let JS try
+      const d = new Date(raw)
+      return isNaN(d.getTime()) ? null : d
+    }
+
+    const fromDate = new Date(config.dateFrom)
+    const toDate   = new Date(config.dateTo)
+    // set toDate to end of day so "15 May" includes rows dated 15 May
+    toDate.setHours(23, 59, 59, 999)
+
+    // Detect which column index holds Target URL and Date Created
+    const headers = sheetData.headers.map(h => h.toLowerCase().trim())
+    const targetUrlCol  = headers.findIndex(h => h.includes('target') && h.includes('url'))
+    const dateCol       = headers.findIndex(h => h.includes('date'))
+    const projectCol    = headers.findIndex(h => h.includes('project'))
+
+    const filtered = sheetData.rows.filter(row => {
+      const targetUrl = (row[targetUrlCol] || '').toLowerCase()
+      const project   = (row[projectCol]   || '').toLowerCase()
+      const dateRaw   = row[dateCol] || ''
+      const rowDate   = parseFlexDate(dateRaw)
+
+      // Match client: Target URL contains the client domain OR Project contains client name
+      const clientMatch =
+        (clientDomain && targetUrl.includes(clientDomain)) ||
+        (clientNameLower && project.includes(clientNameLower))
+
+      // Match date: row falls within report period
+      const dateMatch = rowDate
+        ? rowDate >= fromDate && rowDate <= toDate
+        : false
+
+      return clientMatch && dateMatch
+    })
+
+    if (filtered.length === 0) {
+      shBlock =
+        `BACKLINK DATA: No backlinks found for "${config.clientName}" (${config.clientUrl}) ` +
+        `between ${config.dateFrom} and ${config.dateTo}.\n` +
+        `Total rows scanned: ${sheetData.rows.length}. ` +
+        `Client domain checked: "${clientDomain}". ` +
+        `This means zero rows in the sheet matched this client + date range — do NOT invent backlinks.`
+    } else {
+      shBlock =
+        `BACKLINK DATA for "${config.clientName}" — ` +
+        `${config.dateFrom} to ${config.dateTo} — ` +
+        `${filtered.length} row(s) matched (pre-filtered in JS, verified against "${clientDomain}"):\n\n` +
+        sheetData.headers.join(' | ') + '\n' +
+        filtered.map(r => r.join(' | ')).join('\n')
+    }
+  }
 
   // Uploads block
   let uploadsBlock = 'No files uploaded.'
@@ -91,4 +159,3 @@ Conversions: ${Math.round(c.conversions)}${p ? ` (prev: ${Math.round(p.conversio
     .replace('{{SHEETS_DATA}}', shBlock)
     .replace('{{MANUAL_DATA}}', manualNotes || '(none)')
 }
-
